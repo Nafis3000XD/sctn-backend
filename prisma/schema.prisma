@@ -1,0 +1,396 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  passwordHash   String
+  role           String // Citizen, Admin, JobInterviewer, BankLoanOfficer, UniversityAuthority
+  isActive       Boolean  @default(true)
+  profilePicture String?
+  createdAt      DateTime @default(now())
+  supportStatus  String   @default("Open") // Open, Closed
+
+  changeRequests  ProfileChangeRequest[] @relation("ChangeRequestCitizen")
+  changeReviews   ProfileChangeRequest[] @relation("ChangeRequestReviewer")
+  uploads         UploadedFile[]
+  citizenProfile  CitizenProfile?
+  consentRequests ConsentRequest[]       @relation("Requester")
+  consentTarget   ConsentRequest[]       @relation("Target")
+  auditLogs       AuditLog[]
+  citizenMessages SupportMessage[]       @relation("CitizenMessages")
+  sentMessages    SupportMessage[]       @relation("SenderMessages")
+}
+
+model CitizenProfile {
+  id                           String   @id @default(uuid())
+  userId                       String   @unique
+  citizenId                    String   @unique
+  fullName                     String
+  phone                        String
+  dob                          DateTime
+  gender                       String
+  address                      String
+  emergencyContactName         String
+  emergencyContactNumber       String
+  emergencyContactRelationship String?
+  bloodGroup                   String
+  fathersName                  String?
+  mothersName                  String?
+  nationality                  String?
+  maritalStatus                String?
+  religion                     String?
+
+  user          User           @relation(fields: [userId], references: [id])
+  identityInfo  IdentityInfo?
+  educationInfo EducationInfo?
+  financialInfo FinancialInfo?
+  medicalInfo   MedicalInfo?
+  crimeInfo     CrimeInfo?
+  documents     Document[]
+}
+
+model IdentityInfo {
+  id                   String  @id @default(uuid())
+  citizenProfileId     String  @unique
+  nid                  String? @unique // NID Number
+  nidNameBangla        String?
+  nidFathersNameBangla String?
+  nidMothersNameBangla String?
+  nidStatus            String  @default("Pending Review")
+
+  passport           String? @unique // Passport Number
+  passportType       String? // Ordinary, Official, Diplomatic
+  passportIssueDate  String?
+  passportExpiryDate String?
+  passportIssuePlace String?
+  passportStatus     String  @default("Pending Review")
+
+  drivingLicense                  String? @unique // License Number
+  drivingLicenseType              String? // Non-Professional, Professional
+  drivingLicenseVehicleCategories String? // Light, Medium, Heavy, Motorcycle
+  drivingLicenseIssueDate         String?
+  drivingLicenseExpiryDate        String?
+  drivingLicenseStatus            String  @default("Pending Review")
+
+  tradeLicense               String? @unique // Trade License Number
+  tradeLicenseBusinessName   String?
+  tradeLicenseBusinessType   String?
+  tradeLicenseIssueAuthority String?
+  tradeLicenseFiscalYear     String?
+  tradeLicenseStatus         String  @default("Pending Review")
+
+  tin                 String? @unique // e-TIN Number
+  tinCircleZone       String?
+  tinAssessmentStatus String?
+  tinStatus           String  @default("Pending Review")
+
+  landRecord           String? // Khatian Number
+  landRecordDaagNumber String?
+  landRecordMouzaThana String?
+  landRecordDistrict   String?
+  landRecordStatus     String  @default("Pending Review")
+
+  familyCard             String? @unique // Family Card Number
+  familyCardMembersCount String?
+  familyCardStatus       String  @default("Pending Review")
+
+  farmerCard       String? @unique // Farmer Card Number
+  farmerCardType   String?
+  farmerCardStatus String  @default("Pending Review")
+
+  status String @default("Pending Review")
+
+  citizenProfile CitizenProfile @relation(fields: [citizenProfileId], references: [id])
+}
+
+model EducationInfo {
+  id               String @id @default(uuid())
+  citizenProfileId String @unique
+
+  sscRoll        String?
+  sscReg         String?
+  sscGpa         Float?
+  sscGroup       String? // Science, Commerce, Arts
+  sscBoard       String? // Board name
+  sscPassingYear Int?
+  sscInstitution String?
+  sscStatus      String  @default("Pending Review")
+
+  hscRoll        String?
+  hscReg         String?
+  hscGpa         Float?
+  hscGroup       String? // Science, Commerce, Arts
+  hscBoard       String? // Board name
+  hscPassingYear Int?
+  hscInstitution String?
+  hscStatus      String  @default("Pending Review")
+
+  university               String? // University / College Name
+  degree                   String? // Degree Name
+  universityDepartment     String?
+  universityStudentId      String?
+  cgpa                     Float?
+  universitySemester       String? // e.g. 2nd Year, 1st Semester
+  graduationYear           Int? // Passing / Graduation Year or Expected
+  universityEnrollmentYear Int?
+  universityStatus         String  @default("Pending Review")
+
+  status String @default("Pending Review")
+
+  citizenProfile CitizenProfile @relation(fields: [citizenProfileId], references: [id])
+}
+
+model FinancialInfo {
+  id               String @id @default(uuid())
+  citizenProfileId String @unique
+
+  // 1. Occupation & Employment Status
+  occupation         String? // Occupation / Job Title
+  employmentStatus   String? // Full-Time, Part-Time, Freelance, Contractual, Business Owner
+  companyName        String? // Company / Organization Name
+  workExperience     String? // Work Experience in Current Role
+  officeAddressEmail String? // Office Address & Official Email
+  occupationStatus   String  @default("Pending Review")
+
+  // 2. Monthly Income & Financial Inflow
+  monthlyIncome           Float? // Gross Monthly Income
+  netTakeHomePay          Float? // Net Take-Home Pay
+  primaryIncomeSource     String? // Salary, Freelance Remittance, Business Profit, Investments
+  secondaryIncome         String? // Secondary / Alternative Income
+  preferredPayoutMethod   String? // Preferred Payout Method
+  incomeStatus            String  @default("Pending Review")
+  incomeVerificationBadge String  @default("Self-Declared") // Verified via Bank Statement, Self-Declared
+
+  // 3. Tax Compliance & Records (TIN)
+  tin                        String? @unique // e-TIN Number
+  taxZoneCircle              String? // Tax Zone & Tax Circle
+  taxRegistrationStatus      String? // Registered / Active, Suspended
+  taxpayerAssessmentCategory String? // Individual, Company, Firm
+  taxComplianceStatus        String  @default("Pending Review")
+
+  // 4. Tax Clearance & Return Filing Status
+  taxClearanceStatus          String? // Compliant / Up-to-Date, Non-Compliant, Exempted
+  lastReturnSubmissionDate    String? // e.g., November 30, 2025
+  taxYearOfLastReturn         String? // e.g., Assessment Year 2025-2026
+  acknowledgmentReceiptNumber String? // Acknowledgment Receipt Number
+  totalTaxPaid                Float? // Total Tax Paid (Current Fiscal Year)
+  taxClearanceStatusBadge     String  @default("Pending Review")
+
+  // 5. Bank Account & Wealth Records
+  bankAccountNumber String?
+  bankNameBranch    String? // Bank Name & Branch
+  routingNumber     String?
+  mfsWallet         String? // Mobile Financial Service (MFS) Wallet
+  wealthStatus      String  @default("Pending Review")
+
+  status String @default("Pending Review")
+
+  citizenProfile CitizenProfile @relation(fields: [citizenProfileId], references: [id])
+}
+
+model Document {
+  id               String   @id @default(uuid())
+  citizenProfileId String
+  type             String // NID, Passport, Certificate, etc.
+  fileUrl          String
+  uploadDate       DateTime @default(now())
+  status           String   @default("Pending Review")
+
+  citizenProfile CitizenProfile @relation(fields: [citizenProfileId], references: [id])
+
+  @@index([citizenProfileId])
+}
+
+model ConsentRequest {
+  id            String    @id @default(uuid())
+  requesterId   String
+  targetId      String
+  requestedData String // JSON array of requested fields/categories
+  status        String    @default("Pending") // Pending, Approved, Rejected, Expired
+  expiryTime    DateTime?
+  createdAt     DateTime  @default(now())
+  approvedAt    DateTime?
+
+  requester User @relation("Requester", fields: [requesterId], references: [id])
+  target    User @relation("Target", fields: [targetId], references: [id])
+
+  @@index([targetId, status])
+  @@index([requesterId])
+  @@index([status, expiryTime])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String?
+  timestamp DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([timestamp])
+}
+
+model FraudAlert {
+  id              String   @id @default(uuid())
+  duplicateType   String // e.g., NID
+  duplicateValue  String
+  involvedUserIds String // JSON array of user IDs
+  status          String   @default("Open") // Open, Resolved
+  createdAt       DateTime @default(now())
+
+  @@index([status])
+}
+
+model MedicalInfo {
+  id                    String             @id @default(uuid())
+  citizenProfileId      String             @unique
+  bloodType             String?
+  allergies             String?
+  chronicConditions     String?
+  medicalHistory        String?
+  immunizationStatus    String?
+  insuranceProvider     String?
+  insurancePolicyNumber String?
+  status                String             @default("Pending Review")
+  visitLogs             HospitalVisitLog[]
+
+  citizenProfile CitizenProfile @relation(fields: [citizenProfileId], references: [id])
+}
+
+model HospitalVisitLog {
+  id              String   @id @default(uuid())
+  medicalInfoId   String
+  visitDate       String
+  doctorName      String
+  hospitalName    String
+  prescriptionPic String?
+  reason          String?
+  prescriptionPdf String?
+  createdAt       DateTime @default(now())
+
+  medicalInfo MedicalInfo @relation(fields: [medicalInfoId], references: [id], onDelete: Cascade)
+
+  @@index([medicalInfoId, createdAt])
+}
+
+model CrimeInfo {
+  id                         String     @id @default(uuid())
+  citizenProfileId           String     @unique
+  hasCriminalRecord          Boolean    @default(false)
+  pendingCharges             String?
+  recordDetails              String?
+  clearanceCertificateNumber String?
+  clearanceStatus            String     @default("Pending Review")
+  status                     String     @default("Pending Review")
+  fineLogs                   FineLog[]
+  crimeLogs                  CrimeLog[]
+
+  citizenProfile CitizenProfile @relation(fields: [citizenProfileId], references: [id])
+}
+
+model FineLog {
+  id             String    @id @default(uuid())
+  crimeInfoId    String
+  fineDate       DateTime  @default(now())
+  fineReason     String
+  fineAmount     Float?
+  isCleared      Boolean   @default(false)
+  clearanceDate  DateTime?
+  clearanceNotes String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  crimeInfo CrimeInfo @relation(fields: [crimeInfoId], references: [id], onDelete: Cascade)
+
+  @@index([crimeInfoId])
+  @@index([isCleared])
+}
+
+model CrimeLog {
+  id          String   @id @default(uuid())
+  crimeInfoId String
+  offense     String
+  caseNumber  String
+  crimeDate   DateTime @default(now())
+  severity    String // Felony, Misdemeanor, Infraction
+  status      String // Convicted, Pending Trial, Acquitted, Dismissed
+  details     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  crimeInfo CrimeInfo @relation(fields: [crimeInfoId], references: [id], onDelete: Cascade)
+
+  @@index([crimeInfoId])
+}
+
+model SupportMessage {
+  id        String   @id @default(uuid())
+  citizenId String
+  senderId  String
+  message   String
+  createdAt DateTime @default(now())
+
+  citizen User @relation("CitizenMessages", fields: [citizenId], references: [id])
+  sender  User @relation("SenderMessages", fields: [senderId], references: [id])
+}
+
+model UploadedFile {
+  id       String         @id @default(uuid())
+  ownerId  String
+  owner    User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  category UploadCategory
+  mimeType String
+  bytes    Bytes
+
+  @@index([ownerId])
+}
+
+enum UploadCategory {
+  Profile
+  Document
+  Prescription
+}
+
+enum ChangeCategory {
+  PERSONAL
+  IDENTITY
+  EDUCATION
+  FINANCIAL
+  MEDICAL
+  CRIME
+}
+
+enum ChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ProfileChangeRequest {
+  id             String              @id
+  citizenId      String
+  citizen        User                @relation("ChangeRequestCitizen", fields: [citizenId], references: [id])
+  category       ChangeCategory
+  priorValues    Json
+  proposedValues Json
+  reason         String
+  verifiedAt     DateTime
+  network        String
+  status         ChangeRequestStatus @default(PENDING)
+  createdAt      DateTime            @default(now())
+  reviewerId     String?
+  reviewer       User?               @relation("ChangeRequestReviewer", fields: [reviewerId], references: [id])
+  reviewedAt     DateTime?
+  reviewNote     String?
+
+  @@index([citizenId, createdAt])
+  @@index([status, createdAt])
+}
