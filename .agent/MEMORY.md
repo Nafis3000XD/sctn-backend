@@ -6,3 +6,5 @@
 - Verification grants expire after 15 minutes and are scoped to the bearer session and observed IP. Requests store a masked network label. Admin review applies approved values and status atomically and rejects stale comparisons on changed fields.
 - Database startup uses `prisma migrate deploy`, never a reset. Current migrations are `0_init` and `1_profile_change_requests`. Preserve applied migration files and add successors for new changes.
 - All uploads use access checks and database persistence. Free hosting's ephemeral filesystem is not used for long-lived records.
+
+- 2026-11-20 deployment packaging. Root Dockerfile runs Express and Prisma migrations. Vercel runs Express as a function with a separately configured PostgreSQL database. See [deployment setup](DEPLOYMENT.md).

@@ -22,3 +22,7 @@ The API uses Express 5 on Node.js 24, TypeScript, Prisma 5, PostgreSQL, Zod, bcr
 `User` is the account and role root. `CitizenProfile` owns Identity, Education, Financial, Medical and Crime records. Medical records own hospital visits. Crime records own fine and crime logs. `Document` stores document references. `UploadedFile` stores upload content and ownership. `ConsentRequest`, `AuditLog`, `FraudAlert`, `SupportMessage` and `ProfileChangeRequest` record application workflows.
 
 For runtime variables, Render paths, safe release steps, and SSH limits, see the [integration runbook](https://github.com/Nafis3000XD/sctn-web/blob/main/.agent/RUNBOOK.md). Keep the API and the SPA same-origin in production. Database connections must remain private.
+
+## Deployment entry points
+
+Root Dockerfile runs Express and Prisma migrations. Vercel runs Express as a function with a separately configured PostgreSQL database. See [deployment setup](DEPLOYMENT.md).

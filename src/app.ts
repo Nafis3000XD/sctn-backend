@@ -14,10 +14,14 @@ import uploadRoutes from './routes/uploadRoutes';
 
 const app = express();
 const production = process.env.NODE_ENV === 'production';
+const vercel = process.env.VERCEL === '1';
+const serveFrontend = !vercel && process.env.SCTN_API_ONLY !== '1' && process.env.NODE_ENV !== 'test';
 const frontend = path.resolve(__dirname, '../../frontend/dist');
 
 app.disable('x-powered-by');
-if (process.env.RENDER === 'true') app.set('trust proxy', 1);
+if (process.env.RENDER === 'true' || vercel || process.env.SCTN_TRUST_PROXY === '1') {
+  app.set('trust proxy', 1);
+}
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -57,7 +61,7 @@ app.use('/api', (_req, res) => {
   res.status(404).json({ message: 'API route not found' });
 });
 
-if (process.env.NODE_ENV !== 'test') {
+if (serveFrontend) {
   app.use('/assets', express.static(path.join(frontend, 'assets'), {
     immutable: true,
     maxAge: '1y',

@@ -1,0 +1,14 @@
+.git
+.agent
+node_modules
+dist
+coverage
+.vercel
+.env
+.env.*
+*.local
+*.db*
+uploads
+*.log
+**/*.pem
+**/*.key
