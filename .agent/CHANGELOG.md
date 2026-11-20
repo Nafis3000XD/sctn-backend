@@ -10,3 +10,8 @@ Append a dated entry for each durable change. Include affected areas, verificati
 
 - Root Dockerfile runs Express and Prisma migrations. Vercel runs Express as a function with a separately configured PostgreSQL database.
 - The integration workflow includes a Docker stack smoke test. Vercel project creation is separate from this release.
+
+## 2026-11-20 Backend health monitoring
+
+- Added a Docker image health check and removed the duplicate Compose probe. Documented the existing public endpoint and its response codes. The Docker VM smoke job verifies stack startup and readiness.
+- Verified the probe against a custom port, HTTP 200, HTTP 503, redirects, and connection refusal. The existing Render endpoint returned HTTP 200. This Docker-only release skips Render auto-deploy.

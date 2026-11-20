@@ -4,6 +4,12 @@
 
 From the repository root, run `docker build -t sctn-backend .`. Use the [integration Compose runbook](https://github.com/Nafis3000XD/sctn-web/blob/main/.agent/RUNBOOK.md#docker-on-a-vm) to start all components. For a standalone API container, supply `DATABASE_URL`, `JWT_SECRET` and initial `ADMIN_EMAIL` and `ADMIN_PASSWORD` through a private runtime environment. The entrypoint runs Prisma migrations and administrator bootstrap before starting the API on port 3000. Set `SCTN_RUN_MIGRATIONS=0` on instances whose migrations and bootstrap run in a separate release job. Enable `SCTN_TRUST_PROXY=1` only behind a single trusted proxy.
 
+## Health and uptime monitoring
+
+The backend image includes a Docker health check against `http://127.0.0.1:$PORT/healthz`. Compose uses the same image check before starting Caddy. Use `docker ps` or `docker compose --env-file .env.vm -f compose.vm.yaml ps` to see the container's health.
+
+For an external monitor, configure an HTTPS GET to `https://<your-host>/healthz` with expected status `200`. The endpoint needs no authentication and sends `Cache-Control: no-store`. It returns `200 {"status":"ok"}` if PostgreSQL answers a readiness query and `503 {"status":"unavailable"}` if the query fails. A timeout or connection failure also counts as downtime. On Render, use [the public health endpoint](https://sctn-web-hw6f.onrender.com/healthz).
+
 ## Vercel
 
 Import this repo as an Express project with Root Directory at the repo root. Set `DATABASE_URL` to a PostgreSQL connection string reachable by Vercel. Set `JWT_SECRET` to a strong random secret. Use independent preview and production databases. Keep admin bootstrap credentials in a private operator environment.

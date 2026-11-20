@@ -6,7 +6,7 @@ Generated from Express router registrations by node .agent/generate-endpoints.cj
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | /healthz | Public backend and PostgreSQL readiness |
+| GET | /healthz | Public backend and PostgreSQL readiness. Returns HTTP 200 when ready and HTTP 503 when the database query fails. |
 | GET | /assets/* | Production frontend assets |
 | GET | /{*route} | SPA fallback after API and upload mounts |
 

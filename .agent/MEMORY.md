@@ -8,3 +8,5 @@
 - All uploads use access checks and database persistence. Free hosting's ephemeral filesystem is not used for long-lived records.
 
 - 2026-11-20 deployment packaging. Root Dockerfile runs Express and Prisma migrations. Vercel runs Express as a function with a separately configured PostgreSQL database. See [deployment setup](DEPLOYMENT.md).
+
+- 2026-11-20 health monitoring. The standalone backend image probes the existing PostgreSQL-backed `/healthz` at its configured port. The VM Compose stack inherits that probe. External monitors can use the public HTTPS endpoint.

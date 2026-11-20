@@ -19,5 +19,7 @@ COPY --from=build /app/prisma ./prisma
 COPY docker-entrypoint.sh /usr/local/bin/sctn-entrypoint
 USER node
 EXPOSE 3000
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
+    CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || '3000') + '/healthz', { redirect: 'error' }).then(response => { process.exitCode = response.status === 200 ? 0 : 1; }, () => { process.exitCode = 1; });"]
 ENTRYPOINT ["sh", "/usr/local/bin/sctn-entrypoint"]
 CMD ["node", "dist/index.js"]
