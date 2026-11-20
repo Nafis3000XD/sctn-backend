@@ -5,3 +5,11 @@ dist
 uploads
 *.log
 prisma/dev.db
+
+.env.*
+!.env.example
+*.local
+*.db*
+*.pem
+*.key
+coverage/
